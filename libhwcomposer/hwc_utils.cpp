@@ -240,6 +240,13 @@ void initContext(hwc_context_t *ctx)
     ctx->dpyAttr[HWC_DISPLAY_VIRTUAL].mDownScaleMode = false;
 
     ctx->dpyAttr[HWC_DISPLAY_PRIMARY].connected = true;
+    //Initialize the primary display viewFrame info
+    ctx->mViewFrame[HWC_DISPLAY_PRIMARY].left = 0;
+    ctx->mViewFrame[HWC_DISPLAY_PRIMARY].top = 0;
+    ctx->mViewFrame[HWC_DISPLAY_PRIMARY].right =
+        (int)ctx->dpyAttr[HWC_DISPLAY_PRIMARY].xres;
+    ctx->mViewFrame[HWC_DISPLAY_PRIMARY].bottom =
+         (int)ctx->dpyAttr[HWC_DISPLAY_PRIMARY].yres;
 
     ctx->mVDSEnabled = false;
     if((property_get("persist.hwc.enable_vds", value, NULL) > 0)) {
@@ -1493,6 +1500,10 @@ void setMdpFlags(hwc_layer_1_t *layer,
 int configRotator(Rotator *rot, Whf& whf,
         hwc_rect_t& crop, const eMdpFlags& mdpFlags,
         const eTransform& orient, const int& downscale) {
+
+    //Check if input switched from secure->non-secure OR non-secure->secure
+    //Need to fail rotator setup as rotator buffer needs reallocation.
+    if(!rot->isRotBufReusable(mdpFlags)) return -1;
 
     // Fix alignments for TILED format
     if(whf.format == MDP_Y_CRCB_H2V2_TILE ||
