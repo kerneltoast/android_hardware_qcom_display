@@ -28,8 +28,6 @@
 #include <overlayRotator.h>
 #include "hwc_copybit.h"
 
-#include <utils/Vector.h>
-
 using namespace overlay;
 using namespace qdutils;
 using namespace overlay::utils;
@@ -823,7 +821,7 @@ bool MDPComp::fullMDPCompWithPTOR(hwc_context_t *ctx,
         return false;
     }
     private_handle_t *renderBuf = ctx->mCopyBit[mDpy]->getCurrentRenderBuffer();
-    Vector<Whf> layerWhf; // To store w,h,f of PTOR layers
+    Whf layerWhf[numPTORLayersFound]; // To store w,h,f of PTOR layers
 
     // Store the blending mode, planeAlpha, and transform of PTOR layers
     int32_t blending[numPTORLayersFound];
@@ -843,7 +841,7 @@ bool MDPComp::fullMDPCompWithPTOR(hwc_context_t *ctx,
         // Store & update w, h, format of PTOR layer
         private_handle_t *hnd = (private_handle_t *)layer->handle;
         Whf whf(hnd->width, hnd->height, hnd->format, hnd->size);
-        layerWhf.insertAt(whf, j);
+        layerWhf[j] = whf;
         hnd->width = renderBuf->width;
         hnd->height = renderBuf->height;
         hnd->format = renderBuf->format;
@@ -906,10 +904,9 @@ bool MDPComp::fullMDPCompWithPTOR(hwc_context_t *ctx,
         int idx = ctx->mPtorInfo.layerIndex[i];
         hwc_layer_1_t* layer = &list->hwLayers[idx];
         private_handle_t *hnd = (private_handle_t *)list->hwLayers[idx].handle;
-        Whf whf = layerWhf.itemAt(i);
-        hnd->width = whf.w;
-        hnd->height = whf.h;
-        hnd->format = whf.format;
+        hnd->width = layerWhf[i].w;
+        hnd->height = layerWhf[i].h;
+        hnd->format = layerWhf[i].format;
         layer->blending = blending[i];
         layer->planeAlpha = planeAlpha[i];
         layer->transform = transform[i];
@@ -1085,7 +1082,7 @@ bool MDPComp::loadBasedComp(hwc_context_t *ctx,
 }
 
 bool MDPComp::isLoadBasedCompDoable(hwc_context_t *ctx,
-        hwc_display_contents_1_t* /*list*/) {
+        hwc_display_contents_1_t* list) {
     if(mDpy or isSecurePresent(ctx, mDpy) or
             isYuvPresent(ctx, mDpy)) {
         return false;
@@ -1465,8 +1462,8 @@ bool MDPComp::postHeuristicsHandling(hwc_context_t *ctx,
     return true;
 }
 
-bool MDPComp::resourceCheck(hwc_context_t * /*ctx*/,
-        hwc_display_contents_1_t * /*list*/) {
+bool MDPComp::resourceCheck(hwc_context_t *ctx,
+        hwc_display_contents_1_t *list) {
     const bool fbUsed = mCurrentFrame.fbCount;
     if(mCurrentFrame.mdpCount > sMaxPipesPerMixer - fbUsed) {
         ALOGD_IF(isDebug(), "%s: Exceeds MAX_PIPES_PER_MIXER",__FUNCTION__);
