@@ -112,7 +112,6 @@ class HWDevice : public HWInterface {
   void ResetDisplayParams();
   void SetCSC(LayerCSC source, mdp_color_space *color_space);
   void SetIGC(const Layer &layer, uint32_t index);
-  void SetFRC(HWLayers *hw_layers);
 
   bool EnableHotPlugDetection(int enable);
   ssize_t SysFsWrite(const char* file_node, const char* value, ssize_t length);
@@ -134,7 +133,6 @@ class HWDevice : public HWInterface {
   mdp_output_layer mdp_out_layer_;
   const char *device_name_;
   bool synchronous_commit_;
-  mdp_frc_info mdp_frc_info_;
 };
 
 }  // namespace sdm

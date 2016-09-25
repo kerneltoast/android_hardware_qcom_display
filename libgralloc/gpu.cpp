@@ -53,16 +53,6 @@ int gpu_context_t::gralloc_alloc_buffer(unsigned int size, int usage,
 {
     int err = 0;
     int flags = 0;
-    int alignedw = 0;
-    int alignedh = 0;
-
-    AdrenoMemInfo::getInstance().getAlignedWidthAndHeight(width,
-            height,
-            format,
-            usage,
-            alignedw,
-            alignedh);
-
     size = roundUpToPageSize(size);
     alloc_data data;
     data.offset = 0;
@@ -169,8 +159,8 @@ int gpu_context_t::gralloc_alloc_buffer(unsigned int size, int usage,
         flags |= data.allocType;
         uint64_t eBaseAddr = (uint64_t)(eData.base) + eData.offset;
         private_handle_t *hnd = new private_handle_t(data.fd, size, flags,
-                bufferType, format, alignedw, alignedh, width, height, eData.fd,
-                eData.offset, eBaseAddr);
+                bufferType, format, width, height, eData.fd, eData.offset,
+                eBaseAddr);
 
         hnd->offset = data.offset;
         hnd->base = (uint64_t)(data.base) + data.offset;
@@ -238,7 +228,7 @@ int gpu_context_t::gralloc_alloc_framebuffer_locked(int usage,
         private_handle_t::PRIV_FLAGS_USES_ION |
         private_handle_t::PRIV_FLAGS_FRAMEBUFFER,
         BUFFER_TYPE_UI, m->fbFormat, m->info.xres,
-        m->info.yres, m->info.xres, m->info.yres);
+        m->info.yres);
 
     // find a free slot
     for (uint32_t i=0 ; i<numBuffers ; i++) {
@@ -338,7 +328,7 @@ int gpu_context_t::alloc_impl(int w, int h, int format, int usage,
         err = gralloc_alloc_framebuffer(usage, pHandle);
     } else {
         err = gralloc_alloc_buffer(size, usage, pHandle, bufferType,
-                                   grallocFormat, w, h);
+                                   grallocFormat, alignedw, alignedh);
     }
 
     if (err < 0) {

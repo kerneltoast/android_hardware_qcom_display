@@ -309,7 +309,6 @@ int gralloc_perform(struct gralloc_module_t const* module,
                 int width = va_arg(args, int);
                 int height = va_arg(args, int);
                 int format = va_arg(args, int);
-                int alignedw = 0, alignedh = 0;
 
                 native_handle_t** handle = va_arg(args, native_handle_t**);
                 private_handle_t* hnd = (private_handle_t*)native_handle_create(
@@ -322,12 +321,8 @@ int gralloc_perform(struct gralloc_module_t const* module,
                   hnd->offset = offset;
                   hnd->base = uint64_t(base) + offset;
                   hnd->gpuaddr = 0;
-                  AdrenoMemInfo::getInstance().getAlignedWidthAndHeight(width,
-                          height, format, 0, alignedw, alignedh);
-                  hnd->width = alignedw;
-                  hnd->height = alignedh;
-                  hnd->real_width = width;
-                  hnd->real_height = height;
+                  hnd->width = width;
+                  hnd->height = height;
                   hnd->format = format;
                   *handle = (native_handle_t *)hnd;
                   res = 0;
